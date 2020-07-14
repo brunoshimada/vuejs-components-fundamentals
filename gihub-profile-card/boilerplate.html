@@ -5,34 +5,46 @@
 </head>
 
 <body>
-
-  <div id="app" class="ui container">
+  <div id="app" class="ui container segment">
     <h1>GitHub Profiles</h1>
-    <github-user-card username="brunoshimada"></github-user-card>
 
-    <!-- Template for GitHub card -->
-    <script type="text/x-template" id="github-user-card-template">
-    <div class="ui card">
-      <div class="image">
-        <img :src="user.avatar_url">
-      </div>
-      <div class="content">
-        <a class="header">{{user.name}}</a>
-        <div class="meta">
-          <span class="date">Joined in {{user.created_at}}</span>
+    <div class="ui fluid large input" icon="input" style="margin-bottom: 5px;">
+      <input type="text" placeholder="user..." v-model="username" v-on:keyup.enter="loadNewUser()" v-on:input="destroy()" style="width: fit-content"/>
+    </div>
+
+
+    <div v-if="userFound()">
+      <div class="ui centered card">
+        <div class="image">
+          <img :src="user.avatar_url">
         </div>
-        <div class="description">
-          {{user.location}}
+        <div class="content">
+          <a class="header">{{user.name}}</a>
+          <div class="meta">
+            <span class="date">Joined in {{user.created_at}}</span>
+          </div>
+          <div class="description">
+            {{user.location}}
+          </div>
         </div>
-      </div>
-      <div class="extra content">
-        <a>
-          <i class="user icon"></i>
-          {{user.followers}}
-        </a>
+        <div class="extra content">
+          <a>
+            <i class="user icon"></i>
+            {{user.followers}}
+          </a>
+        </div>
       </div>
     </div>
-  </script>
+    <div v-else>
+      <div class="ui icon message">
+        <i class="notched circle loading icon"></i>
+        <div class="content">
+          <div class="header">
+            Aguardando busca...
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- Import Vue.js and axios -->
@@ -41,51 +53,38 @@
 
   <!-- Your JavaScript Code :) -->
   <script>
-    Vue.component('github-user-card', {
-      template: '#github-user-card-template',
-      props: {
-        username: {
-          type: String,
-          required: true
-        }
-      },
-      data() {
-        return {
-          user: {}
-        }
-      },
-      created() {
-        let options = {
-          method: 'GET',
-          "content-type": 'application/json'
-        };
-
-        let response = fetch(`https://api.github.com/users/${this.username}`, options);
-
-        response.then( (response) => {
-          return response.json();
-        }).then( (json) => {
-          this.user = json;
-          this.user.created_at = new Date(this.user.created_at).getFullYear();  
-        }).catch( (error) => {
-          console.error(error);
-        });
-      } 
-    })
-
-    var vm = new Vue({
+    new Vue({
       el: '#app',
       data: {
-        newUser: "", 
-        user: { }
+        username: "",
+        user: {}
       },
       methods: {
+        userFound: function() {
+          return !(Object.keys(this.user).length === 0);
+        },
         loadNewUser: function() {
-          
+          let options = {
+            method: 'GET',
+            "content-type": 'application/json'
+          };
+
+          let response = fetch(`https://api.github.com/users/${this.username}`, options);
+
+          response.then((response) => {
+            return response.json();
+          }).then((json) => {
+            this.user = json;
+            this.user.created_at = new Date(this.user.created_at).getFullYear();
+          }).catch((error) => {
+            console.error(error);
+          });
+        },
+        destroy: function() {
+          this.user = {};
         }
       }
     })
   </script>
 </body>
-
 </html>
